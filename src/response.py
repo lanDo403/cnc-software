@@ -39,7 +39,7 @@ def Crc8(data: bytes) -> int:
 	return crc
 
 
-# Преобразует список строк G-code в байтовый поток .Каждая строка заканчивается '\n'.
+# Преобразует список строк G-code в байтовый поток. Каждая строка заканчивается '\n'
 def GcodeListToStr(gcodeLines: list[str]) -> bytes:
     lines = []
     for line in gcodeLines:
