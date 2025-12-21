@@ -4,6 +4,8 @@
 #include <stdbool.h>
 
 typedef struct {
+	float prev_x;   // Предыдущая позиция X
+	float prev_y;   // Предыдущая позиция Y
     float x;        // Текущая позиция X
     float y;        // Текущая позиция Y
     bool absolute;  // Режим координат (true - абсолютные, false - относительные)
@@ -13,6 +15,8 @@ typedef struct {
 
 // Загрузка начальных параметров (координаты + скорость + тип к-нат)
 void cnc_init(CNC_Start* start) {
+	start->prev_x = 0.0f;
+	start->prev_y = 0.0f;
     start->x = 0.0f;
     start->y = 0.0f;
     start->absolute = true;
@@ -35,6 +39,8 @@ void g00(CNC_Start* start, float target_x, float target_y) {
     printf("G00: Быстрое перемещение из (%.2f, %.2f) в (%.2f, %.2f)\n", 
            start->x, start->y, new_x, new_y);
     
+	start->prev_x = start->x;
+	start->prev_y = start->y;
     start->x = new_x;
     start->y = new_y;
     start->rapid = true;
@@ -59,6 +65,8 @@ void g01(CNC_Start* start, float target_x, float target_y) {
     printf("Расстояние: %.2f мм, Время: %.2f сек, Подача: %.2f мм/мин\n", 
            distance, time, start->feed_rate);
     
+	start->prev_x = start->x;
+	start->prev_y = start->y;
     start->x = new_x;
     start->y = new_y;
     start->rapid = false;
@@ -73,6 +81,8 @@ void g02(CNC_Start* start, float target_x, float target_y, float i, float j) {
            start->x, start->y, target_x, target_y);
     printf("Центр: (%.2f, %.2f), Радиус: %.2f мм\n", center_x, center_y, radius);
     
+	start->prev_x = start->x;
+	start->prev_y = start->y;
     start->x = target_x;
     start->y = target_y;
     start->rapid = false;
@@ -87,6 +97,8 @@ void g03(CNC_Start* start, float target_x, float target_y, float i, float j) {
            start->x, start->y, target_x, target_y);
     printf("Центр: (%.2f, %.2f), Радиус: %.2f мм\n", center_x, center_y, radius);
     
+	start->prev_x = start->x;
+	start->prev_y = start->y;
     start->x = target_x;
     start->y = target_y;
     start->rapid = false;
@@ -134,18 +146,59 @@ void parse_gcode(CNC_Start* start, const char* gcode) {
     }
 }
 
+float nStepsToPointX(CNC_Start* start, float step){
+	float x_diff, x_steps;
+	float steps_quantity;
+		
+	x_diff = fabs(start->prev_x - start->x);
+	steps_quantity = x_diff / step;
+
+	return steps_quantity;
+}
+
+float nStepsToPointY(CNC_Start* start, float step){
+	float y_diff, y_steps;
+	float steps_quantity;
+
+	y_diff = fabs(start->prev_y - start->y);
+	steps_quantity = y_diff / step;
+
+	return steps_quantity;
+}
+
 int main() {
     CNC_Start cnc;
     cnc_init(&cnc);
+	float step = pow(10, -6);
+	float x_steps;
+	float y_steps;
     
     printf("\n=== Пример последовательности G - кодов ===\n\n");
     
     parse_gcode(&cnc, "G90");
     parse_gcode(&cnc, "G00 X50 Y10");
+	
+	x_steps = nStepsToPointX(&cnc, step);
+	y_steps = nStepsToPointY(&cnc, step);
+	printf("Шаги мотора для оси X: %f \n", x_steps);
+	printf("Шаги мотора для оси Y: %f \n", y_steps);
+
 	parse_gcode(&cnc, "F300");
     parse_gcode(&cnc, "G01 X123 Y15 F1000");
-    parse_gcode(&cnc, "G02 X30 Y20 I7 J2");
-    parse_gcode(&cnc, "G91");
+	
+	x_steps = nStepsToPointX(&cnc, step);
+	y_steps = nStepsToPointY(&cnc, step);
+	printf("Шаги мотора для оси X: %f \n", x_steps);
+	printf("Шаги мотора для оси Y: %f \n", y_steps);
+    
+	parse_gcode(&cnc, "G02 X30 Y20 I7 J2");
+	
+	x_steps = nStepsToPointX(&cnc, step);
+	y_steps = nStepsToPointY(&cnc, step);
+	printf("Шаги мотора для оси X: %f \n", x_steps);
+	printf("Шаги мотора для оси Y: %f \n", y_steps);
+    
+	parse_gcode(&cnc, "G91");
     parse_gcode(&cnc, "G01 X7 Y7");
     parse_gcode(&cnc, "G03 X15 Y15 I-5 J5");
     
