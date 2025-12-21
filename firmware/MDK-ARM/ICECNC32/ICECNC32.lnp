@@ -1,0 +1,25 @@
+--cpu Cortex-M3
+"icecnc32\startup_stm32f103xb.o"
+"icecnc32\main.o"
+"icecnc32\cnc-logic.o"
+"icecnc32\stm32f1xx_it.o"
+"icecnc32\stm32f1xx_hal_msp.o"
+"icecnc32\stm32f1xx_hal_gpio_ex.o"
+"icecnc32\stm32f1xx_hal_tim.o"
+"icecnc32\stm32f1xx_hal_tim_ex.o"
+"icecnc32\stm32f1xx_hal.o"
+"icecnc32\stm32f1xx_hal_rcc.o"
+"icecnc32\stm32f1xx_hal_rcc_ex.o"
+"icecnc32\stm32f1xx_hal_gpio.o"
+"icecnc32\stm32f1xx_hal_dma.o"
+"icecnc32\stm32f1xx_hal_cortex.o"
+"icecnc32\stm32f1xx_hal_pwr.o"
+"icecnc32\stm32f1xx_hal_flash.o"
+"icecnc32\stm32f1xx_hal_flash_ex.o"
+"icecnc32\stm32f1xx_hal_exti.o"
+"icecnc32\stm32f1xx_hal_uart.o"
+"icecnc32\system_stm32f1xx.o"
+--strict --scatter "ICECNC32\ICECNC32.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "ICECNC32.map" -o ICECNC32\ICECNC32.axf
