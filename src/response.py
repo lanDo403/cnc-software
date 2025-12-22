@@ -106,8 +106,45 @@ def ReadAckPacket(ser: serial.Serial, timeout: float = 0.05) -> Optional[int]:
 	return body[2]
 
 
+# Отправка уже готовой из ГУИ hex строки с G-code и со всеми заполненными полями
+def SendHex(port: str, hexString: str, baudrate: int) -> bool:
+	try:
+		# Не знаю в каком конкретно будет формате hex строка(с пробелами или без), 
+		# поэтому для корректности убираем лишние пробелы и переводы строк
+		hexString = hexString.strip()
+
+		# Если количество hex символов нечетное, то потенциально может быть ошибка
+		# Ну и ошибка может быть, если в строке есть не hex символ, что вряд ли
+		data = bytes.fromhex(hexString)
+
+		# Открываем UART
+		ser = serial.Serial(
+			port=port,
+			baudrate=baudrate,
+			bytesize=8,
+			parity='N',
+			stopbits=1,
+			timeout=0.01
+		)
+
+		# Отправляем как есть
+		ser.write(data)
+		ser.flush()
+		time.sleep(0.01)
+
+		ser.close()
+		return True
+
+	except Exception:
+		try:
+			ser.close()
+		except Exception:
+			pass
+		return False
+
+
 # Для инициализации отправки пакета можно вызывать эту функцию в ГУИ напрямую, передав параметры порта, пути до файла с g-code и baudrate
-def SendGcode(port: str, gcodeLines: list[str], baudrate: int, chunkSize: int=250, retries: int=3) -> bool:
+def SendGcode(port: str, gcodeLines: list[str], baudrate: int, chunkSize: int=250, retries: int=3) -> bool:#
 	# Инициализация UART
 	ser = serial.Serial(
 		port = port, # Получить из ГУИ
