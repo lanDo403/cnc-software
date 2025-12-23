@@ -281,7 +281,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>Радиус окружности:</string>
+       <string>Радиус окружности (для дуг):</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinbox_paint_radius">
@@ -374,19 +374,6 @@
        <string>[ ( ] Перемещение по дуге</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label_12">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>430</y>
-        <width>711</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Примечание: для рисования дуги все равно нужно задать настройки углов и радиуса вручную.</string>
-      </property>
-     </widget>
      <widget class="QPushButton" name="btn_select_file">
       <property name="geometry">
        <rect>
@@ -426,7 +413,7 @@
        <string>Или вместо всего этого просто прочитать G-коды из файла (они не отрисуются, но отправятся):</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="push_file_send">
+     <widget class="QPushButton" name="btn_send_file">
       <property name="geometry">
        <rect>
         <x>20</x>
