@@ -2,20 +2,27 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QGraphicsSce
 from PyQt5.QtSerialPort import QSerialPortInfo
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, QObject, QEvent
-from PyQt5.QtGui import QTextCursor, QImage, QPixmap
+from PyQt5.QtGui import QTextCursor, QPixmap
 from PIL import Image, ImageDraw
 import sys
+import copy
 #import serial.tools.list_ports as get_list
 
-from response import *
+# from response import *
 # dummy implementation of SendGcode for testing GUI
-# def SendGcode(port: str, gcodeLines: list[str], baudrate: int, chunkSize: int=250, retries: int=3) -> bool:
-#     print(f"Sending G-codes: port={port}, baudrate={baudrate}; G-codes=\n{gcodeLines}")
-#     return True
+def SendGcode(port: str, gcodeLines: list[str], baudrate: int, chunkSize: int=250, retries: int=3) -> bool:
+    print(f"Sending G-codes: port={port}, baudrate={baudrate}; G-codes={gcodeLines}")
+    return True
 
 
 def confirm(parent=None, text="Точно?") -> bool:
+    if parent.btn_radio_no_confirm.isChecked():
+        return True
     return QMessageBox.question(parent, "Подтверждение", text, QMessageBox.Yes | QMessageBox.No, QMessageBox.No) == QMessageBox.Yes
+
+
+def alert(parent=None, text="Ошибка!") -> None:
+    return QMessageBox.information(parent, "Предупреждение", text, QMessageBox.Ok)
 
 
 class GraphicsViewClickFilter(QObject):
@@ -33,14 +40,16 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.ui = uic.loadUi('mainwindow.ui', self)
-        self.mainTabs.setCurrentIndex(1)
+        self.mainTabs.setCurrentIndex(0)
         self.GetCOMPorts()
         self.filter = GraphicsViewClickFilter(self.on_field_view_clicked)
         self.field_view.viewport().installEventFilter(self.filter)
         self.scene = QGraphicsScene()
         self.field_view.setScene(self.scene)
         self.field_view.fitInView(self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
+        self.mode_label.setText(f'Ожидание выбора команды')
 
+        self.btn_refresh.clicked.connect(self.GetCOMPorts)
         self.btn_colebrate.clicked.connect(self.clicked_btn_calibrate)
         self.btn_clear_img.clicked.connect(self.clicked_btn_clear_img)
         self.btn_g00.clicked.connect(self.clicked_btn_g00)
@@ -52,16 +61,21 @@ class MainWindow(QMainWindow):
         self.current_y: int = 0
         self.goto_x: int = None
         self.goto_y: int = None
-        self.draw_commands: list = []
+        self.draw_commands: list = []  # G00/G01, x1, y1, x2, y2
 
-    def draw_img(self):
+        self.draw_img()
+
+    def draw_img(self, pre=None):
         img = Image.new("RGB", (330, 228), "white")
         draw = ImageDraw.Draw(img)
+        local_commands = copy.deepcopy(self.draw_commands)
+        if pre is not None:
+            local_commands.append(pre)
         # all commands
-        for command in self.draw_commands:
+        for command in local_commands:
             mode, x1, y1, x2, y2 = command
             if mode == 'G01':
-                draw.line((x1, y1, x2, y2), fill="black", width=2)
+                draw.line((x1, y1, x2, y2), fill="black" if command != pre else 'green', width=2)
         # current position
         if self.current_x is not None and self.current_y is not None:
             r = 3  # радиус текущей позиции
@@ -73,6 +87,7 @@ class MainWindow(QMainWindow):
     def GetCOMPorts(self):
         self.getPorts = QSerialPortInfo()
         ports = list(self.getPorts.availablePorts())
+        self.portsComboBox.clear()
         if ports:
             self.Append('<<<<ПОРТЫ НАЙДЕНЫ>>>>\n')
             self.Append('Список портов:\n')
@@ -91,6 +106,7 @@ class MainWindow(QMainWindow):
 
     def on_field_view_clicked(self, x, y):
         print(f"Clicked at x={x}, y={y}")
+        self.draw_img(pre=(self.mode, self.current_x, self.current_y, x, y))
         if not confirm(self, f"Вы уверены, что хотите выполнить {self.mode} на координаты x={x}, y={y}?"):
             return
         if self.mode != 'G00':
@@ -99,6 +115,10 @@ class MainWindow(QMainWindow):
         self.current_y = y
         self.draw_img()
         SendGcode(self.portsComboBox.currentText(), [f"{self.mode} X{x} Y{y}",], int(self.baudRateLineEdit.text()))
+
+    def on_paint_view_clicked(self, x, y):
+        print(f"Clicked at x={x}, y={y}")
+        # TBD
 
     def clicked_btn_calibrate(self):
         if not confirm(self, "Вы уверены, что хотите выполнить калибровку?"):
