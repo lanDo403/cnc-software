@@ -1,7 +1,7 @@
 --cpu Cortex-M3
 "icecnc32\startup_stm32f103xb.o"
-"icecnc32\main.o"
 "icecnc32\cnc-logic.o"
+"icecnc32\main.o"
 "icecnc32\stm32f1xx_it.o"
 "icecnc32\stm32f1xx_hal_msp.o"
 "icecnc32\stm32f1xx_hal_gpio_ex.o"

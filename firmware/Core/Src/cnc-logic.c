@@ -5,6 +5,8 @@
 #include "math.h"
 
 uint8_t uartRxBuffer[UART_RX_BUFFER_SIZE];
+char uartTxBuffer[255];
+
 uint16_t numberOfReceivedBytes = 0;
 uint8_t cmdLen = 0;
 uint8_t sqn    = 0;
@@ -16,22 +18,12 @@ bool lenReceivedFlag   = false;
 bool sqnReceivedFlag   = false;
 bool addrReceivedFlag  = false;
 bool uartRxComplete    = false;
+bool uartRxSuccess     = false;
 
-//Uart RX error flags
-bool wrongSignFlag     = false;
-bool wrongLenFlag      = false;
-bool wrongSqnFlag      = false;
-bool wrongAddrFlag     = false;
-bool wrongCrcFlag      = false;
-bool packageTooBigFlag = false;
+error_struct error;
+
 bool badPackageFlag    = false;
-
-bool unknownCmdFlag    = false;
-bool wrongGcodeFlag    = false;
-bool wrongGcoordFlag   = false;
-bool wrongGspeedFlag   = false;
 bool badCmdFlag        = false;
-
 bool errorFlag         = false;
 
 bool commandRunSuccess = false;
@@ -63,23 +55,42 @@ void MainLogic()
 		ClearError();
 		StartUartReceive();
 	}
-	else if (uartRxComplete)
+	if (uartRxSuccess)
 	{
+		uartRxSuccess = false;
 		ReportRxSuccess();
 		RunReceivedCommand();
 	}
 	
 	if (commandRunSuccess)
 	{
+		commandRunSuccess = false;
 		ReportCommandRunSuccess();
 		StartUartReceive();
 	}
 }
 
+void SendErrMsg(const char* msg)
+{
+	HAL_UART_Transmit(periph.uart, msg, strlen(msg), 100);
+}
+
 void ReportError(void)
 {
-	uint8_t err[] = "SOME_ERR\n\r";
-	HAL_UART_Transmit(periph.uart, err, sizeof(err), 100);
+	if (error.wrongSign)      SendErrMsg("WRONG PREAMB!\n\r\0");
+	if (error.packageTooBig)  SendErrMsg("PACKET TOO BIG!\n\r\0");
+	if (error.wrongLen)       SendErrMsg("WRONG LEN!\n\r\0");
+	if (error.wrongSqn)       SendErrMsg("WRONG SQN!\n\r\0");
+	if (error.wrongAddr)      SendErrMsg("WRONG ADDR!\n\r\0");
+	if (error.wrongCrc)       SendErrMsg("WRONG CRC!\n\r\0");
+	
+	if (!badPackageFlag)
+	{
+		if (error.unknownCmd)  SendErrMsg("UNKNOWN COMMAND!\n\r\0");
+		if (error.wrongGcode)  SendErrMsg("UNSUPPORTED GCODE!\n\r\0");
+		if (error.wrongGcoord) SendErrMsg("WRONG COORDINATES!\n\r\0");
+		if (error.wrongGspeed) SendErrMsg("WRONG FEEDRATE!\n\r\0");
+	}
 }
 
 void ReportRxSuccess(void)
@@ -105,7 +116,7 @@ void StartUartReceive()
 	numberOfReceivedBytes = 0;
 	badPackageFlag = false;
 	uartRxComplete = false;
-	HAL_UART_Receive_IT(periph.uart, uartRxBuffer, 1);
+	HAL_UART_Receive_DMA(periph.uart, uartRxBuffer, 1);
 }
 
 void ReceiveUart()
@@ -116,7 +127,7 @@ void ReceiveUart()
 	lenReceivedFlag  = (numberOfReceivedBytes >= LEN_INDEX  + 1);
 	sqnReceivedFlag  = (numberOfReceivedBytes >= SQN_INDEX  + 1);
 	addrReceivedFlag = (numberOfReceivedBytes >= ADDR_INDEX + 1);
-	uartRxComplete   =  lenReceivedFlag && (numberOfReceivedBytes == LEN_INDEX + cmdLen + 1);
+	uartRxComplete   =  lenReceivedFlag && (numberOfReceivedBytes == LEN_INDEX + uartRxBuffer[LEN_INDEX] + 1);
 	
 	if (lenReceivedFlag)
 	{
@@ -125,24 +136,26 @@ void ReceiveUart()
 	else if (uartRxComplete)
 	{
 		receivedCrc = uartRxBuffer[numberOfReceivedBytes - 1];
-		uartRxBuffer[numberOfReceivedBytes] = '\0';
+		uartRxBuffer[numberOfReceivedBytes - 1] = '\0';
 	}
 	
-	packageTooBigFlag = numberOfReceivedBytes > 256;
+	error.packageTooBig = numberOfReceivedBytes > 256;
 	
-	wrongLenFlag      = lenReceivedFlag  && ((cmdLen < 4) || (cmdLen > 253));
-	wrongSignFlag     = signReceivedFlag && ((uartRxBuffer[0] != 0xAC) || (uartRxBuffer[1] != 0x53));
-	wrongSqnFlag      = sqnReceivedFlag  && (uartRxBuffer[SQN_INDEX]  != sqn);
-	wrongAddrFlag     = addrReceivedFlag && (uartRxBuffer[ADDR_INDEX] != DEVICE_ADDR);
-	wrongCrcFlag      = uartRxComplete   && (receivedCrc != CalcCrc8(uartRxBuffer, numberOfReceivedBytes));
+	error.wrongLen    = lenReceivedFlag  && ((cmdLen < 4) || (cmdLen > 253));
+	error.wrongSign   = signReceivedFlag && ((uartRxBuffer[0] != 0xAC) || (uartRxBuffer[1] != 0x53));
+	error.wrongSqn    = sqnReceivedFlag  && (uartRxBuffer[SQN_INDEX]  != sqn);
+	error.wrongAddr   = addrReceivedFlag && (uartRxBuffer[ADDR_INDEX] != DEVICE_ADDR);
+	error.wrongCrc    = uartRxComplete   && (receivedCrc != CalcCrc8(uartRxBuffer, numberOfReceivedBytes));
 	
-	badPackageFlag    = wrongLenFlag || wrongSignFlag ||
-	                    wrongSqnFlag || wrongAddrFlag ||
-	                    wrongCrcFlag || packageTooBigFlag;
+	badPackageFlag    = error.wrongSign || error.wrongLen  ||
+	                    error.wrongSqn  || error.wrongAddr ||
+	                    error.wrongCrc  || error.packageTooBig;
  	
+	uartRxSuccess = uartRxComplete && !badPackageFlag;
+	
 	if (!badPackageFlag && !uartRxComplete) 
 	{
-		HAL_UART_Receive_IT(periph.uart, uartRxBuffer, 1);
+		HAL_UART_Receive_DMA(periph.uart, uartRxBuffer + numberOfReceivedBytes, 1);
 	}
 }
 
@@ -150,6 +163,7 @@ void RunReceivedCommand(void)
 {
 	command = uartRxBuffer[CMD_INDEX];
 	params  = (uartRxBuffer + PARAM_START_INDEX);
+	error.unknownCmd = false;
 	
 	switch (command)
 	{
@@ -157,10 +171,12 @@ void RunReceivedCommand(void)
 			ParseGcode(params, cmdLen - 1);
 			break;
 		
+		default: 
+			error.unknownCmd = true;
 	}
 	
-	badCmdFlag = unknownCmdFlag  || wrongGcodeFlag ||
-	             wrongGcoordFlag || wrongGspeedFlag;
+	badCmdFlag = error.unknownCmd  || error.wrongGcode ||
+	             error.wrongGcoord || error.wrongGspeed;
 	
 	commandRunSuccess = !badCmdFlag;
 }
@@ -193,8 +209,12 @@ void ParseGcode(uint8_t *gcode, uint8_t gcodeLen)
 	
 	gArgs.g = (int)GetGcodeArg(gcode, 'G', -1);
 	
+	error.wrongGcoord = (gArgs.x < 0) || (gArgs.x > 330) ||
+	                    (gArgs.y < 0) || (gArgs.y > 228);
+	
 	SetFeedRate(gArgs.f);
 	
+	error.wrongGcode = false;
 	switch(gArgs.g)
 	{
 		case 00:
@@ -222,7 +242,7 @@ void ParseGcode(uint8_t *gcode, uint8_t gcodeLen)
 			break;
 		
 		default:
-			wrongGcodeFlag = true;
+			error.wrongGcode = true;
 	}
 }
 
@@ -265,8 +285,7 @@ void SetFeedRate(float feedRate)
 }
 void MoveTo(float x, float y, bool isRapid)
 {
-	wrongGcoordFlag = (x < 0) || (x > 330) || (y < 0) || (y > 228);
-	if (wrongGcoordFlag) {return;}
+	if (error.wrongGcoord) {return;}
 	
 	Cnc.targetX = x;
 	Cnc.targetY = y;
@@ -280,7 +299,7 @@ void MoveTo(float x, float y, bool isRapid)
 void G00(void)
 {
 	float newX = CalcTargetX(gArgs.x);
-	float newY = CalcTargetY(gArgs.x);
+	float newY = CalcTargetY(gArgs.y);
 	
 	MoveTo(newX, newY, true);
 }
@@ -288,7 +307,7 @@ void G00(void)
 void G01(void)
 {
 	float newX = CalcTargetX(gArgs.x);
-	float newY = CalcTargetY(gArgs.x);
+	float newY = CalcTargetY(gArgs.y);
 	
 	MoveTo(newX, newY, false);
 }

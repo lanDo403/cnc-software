@@ -13,6 +13,24 @@
 
 #define STEP 0.01
 
+typedef struct
+{
+	bool wrongSign;
+	bool wrongLen;
+	bool wrongSqn;
+	bool wrongAddr;
+	bool wrongCrc;
+	bool packageTooBig;
+	bool badPackage;
+
+	bool unknownCmd;
+	bool wrongGcode;
+	bool wrongGcoord;
+	bool wrongGspeed;
+	bool badCmd;
+	
+} error_struct;
+
 typedef struct 
 {
 	float x;   

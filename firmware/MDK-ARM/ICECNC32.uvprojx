@@ -404,11 +404,6 @@
               <FilePath>..\Core\Inc\main.h</FilePath>
             </File>
             <File>
-              <FileName>main.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Core/Src/main.c</FilePath>
-            </File>
-            <File>
               <FileName>cnc-logic.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\Core\Inc\cnc-logic.h</FilePath>
@@ -417,6 +412,11 @@
               <FileName>cnc-logic.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Core\Src\cnc-logic.c</FilePath>
+            </File>
+            <File>
+              <FileName>main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/main.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_it.c</FileName>
