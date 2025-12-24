@@ -7,10 +7,12 @@ import argparse
 from datetime import datetime
 import csv
 
-
+########################################################################################
+#	Control and Testing Equipment for CNC (interaction tester)
+########################################################################################
 
 # Класс мастера для отправки и приёма пакетов
-class C_RS232_MASTER:
+class C_COM_P_MASTER:
 	def __init__(self, port, baudrate, bytesize, stopbits, timeout, crc):
 		self.port		 = port
 		self.baudrate	 = baudrate
@@ -268,8 +270,8 @@ if __name__ == "__main__":
 		# CRC8: полином x^8 + x^5 + x^4 + 1 (0x31)
 		crc = crcmod.predefined.mkPredefinedCrcFun(f"crc-{args.controlsum}")
 
-		# объект класса C_RS232_MASTER
-		obj_rs232 = C_RS232_MASTER(
+		# объект класса C_COM_P_MASTER
+		obj_com_p = C_COM_P_MASTER(
 									port	 = args.comportname,
 									baudrate = args.baudrate,
 									bytesize = args.bytesize,
@@ -283,10 +285,10 @@ if __name__ == "__main__":
 		PARAM	 = C_DATA_ITERATOR(args.filename, args.bytesize)
 
 		# Микротесты
-		obj_rs232.send_packet(LEN, CMD, PARAM)	# Запись 1
-		obj_rs232.send_packet(LEN, CMD, PARAM)	# Запись 2
-		obj_rs232.get_packet()					# Чтение
-		obj_rs232.write_csv()					# Логирование
+		obj_com_p.send_packet(LEN, CMD, PARAM)	# Запись 1
+		obj_com_p.send_packet(LEN, CMD, PARAM)	# Запись 2
+		obj_com_p.get_packet()					# Чтение
+		obj_com_p.write_csv()					# Логирование
 
 
-		obj_rs232.close()
+		obj_com_p.close()
