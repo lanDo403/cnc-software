@@ -11,16 +11,16 @@ import math
 #import serial.tools.list_ports as get_list
 
 
-# from response import *
-# dummy implementation of SendGcode and SendHex for testing GUI
-def SendGcode(port: str, gcodeLines: list[str], baudrate: int, chunkSize: int=250, retries: int=3) -> bool:
-    print(f"Sending G-codes: port={port}, baudrate={baudrate}; G-codes={gcodeLines}")
-    return True
+from response import *
+# # dummy implementation of SendGcode and SendHex for testing GUI
+# def SendGcode(port: str, gcodeLines: list[str], baudrate: int, chunkSize: int=250, retries: int=3) -> bool:
+#     print(f"Sending G-codes: port={port}, baudrate={baudrate}; G-codes={gcodeLines}")
+#     return True
 
 
-def SendHex(port: str, hexString: str, baudrate: int) -> bool:
-    print(f"Sending HEX packet: port={port}, baudrate={baudrate}; packet={hexString}")
-    return True
+# def SendHex(port: str, hexString: str, baudrate: int) -> bool:
+#     print(f"Sending HEX packet: port={port}, baudrate={baudrate}; packet={hexString}")
+#     return True
 
 
 def nearest_anchor(x: int, y: int, anchors: set[tuple[int, int]]) -> tuple[int, int]:
@@ -39,6 +39,75 @@ def get_gcode(mode: str, paint: bool, x: int, y: int, ccw: bool=False, radius:in
             return f'G03 X{x} Y{y} R{radius}'
         else:
             return f'G02 X{x} Y{y} R{radius}'
+
+
+def get_gcodes_htc(img, mode: str, paint: bool, x: int, y: int, angle: int, distance: int, x_cur: int, y_cur: int) -> tuple[list[str], int, int]:
+    if not paint:
+        return [list(), x_cur, y_cur]
+    ret = []
+    x_last, y_last = x_cur, y_cur
+    for x1, y1, x2, y2 in get_hatch_lines(img, x, y, angle, distance):
+        ret.append(f'G00 X{x1} Y{y1}')
+        ret.append(f'G01 X{x2} Y{y2}')
+        x_last, y_last = x2, y2
+    return (ret, x_last, y_last)
+
+
+def get_hatch_lines(img, x, y, angle, distance):
+
+    def _extend_line(x1, y1, x2, y2, pixels):
+        dx = x2 - x1
+        dy = y2 - y1
+        length = math.hypot(dx, dy)
+        if length == 0:
+            return x1, y1, x2, y2
+        ux = dx / length
+        uy = dy / length
+        return (int(round(x1 - ux * pixels)), int(round(y1 - uy * pixels)), int(round(x2 + ux * pixels)), int(round(y2 + uy * pixels)))
+
+    img = copy.deepcopy(img.convert("L"))
+    w, h = img.size
+
+    inv = Image.eval(img, lambda p: 255 if p > 128 else 0)
+    ImageDraw.floodfill(inv, (x, y), 128)
+
+    region = inv.point(lambda p: 255 if p == 128 else 0)
+    mask = region.load()
+
+    angle_rad = math.radians(angle)
+    dx, dy = math.cos(angle_rad), math.sin(angle_rad)
+    nx, ny = -dy, dx
+    diag = int(math.hypot(w, h)) + 2
+    cx, cy = w / 2, h / 2
+
+    segments = []
+    offset = -diag
+    while offset < diag:
+        x1 = cx + nx * offset - dx * diag
+        y1 = cy + ny * offset - dy * diag
+        x2 = cx + nx * offset + dx * diag
+        y2 = cy + ny * offset + dy * diag
+
+        steps = int(math.hypot(x2 - x1, y2 - y1))
+        inside = False
+        sx = sy = None
+        for i in range(steps + 1):
+            t = i / steps
+            xi = int(x1 + (x2 - x1) * t)
+            yi = int(y1 + (y2 - y1) * t)
+            if 0 <= xi < w and 0 <= yi < h and mask[xi, yi]:
+                if not inside:
+                    sx, sy = xi, yi
+                    inside = True
+            else:
+                if inside:
+                    segments.append((sx, sy, xi, yi))
+                    inside = False
+        if inside:
+            segments.append(_extend_line(sx, sy, xi, yi, 2))
+        offset += distance
+
+    return segments
 
 
 def draw_gcode_arc(parent, draw, x1: int, y1: int, x2: int, y2: int, r: int, ccw: bool, steps: int=330) -> bool:
@@ -120,6 +189,7 @@ class GraphicsViewClickFilter(QObject):
             self.callback(pos.x(), pos.y())
         return False
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -141,6 +211,7 @@ class MainWindow(QMainWindow):
         self.btn_paint_vertical.clicked.connect(self.clicked_btn_mode_vrt)
         self.btn_paint_horizontal.clicked.connect(self.clicked_btn_mode_hrz)
         self.btn_paint_sloped.clicked.connect(self.clicked_btn_mode_slp)
+        self.btn_paint_hatch.clicked.connect(self.clicked_btn_mode_htc)
         self.btn_paint_arc.clicked.connect(self.clicked_btn_mode_arc)
         self.btn_pro_gcode_send.clicked.connect(self.clicked_btn_send_gcode)
         self.btn_pro_hex_send.clicked.connect(self.clicked_btn_send_hex)
@@ -161,8 +232,8 @@ class MainWindow(QMainWindow):
         self.draw_img()
 
     def draw_img(self, pre=None) -> bool:
-        img = Image.new("RGB", (330, 228), "white")
-        draw = ImageDraw.Draw(img)
+        self.img = Image.new("RGB", (330, 228), "white")
+        draw = ImageDraw.Draw(self.img)
         local_commands = copy.deepcopy(self.draw_commands)
         if pre is not None:
             local_commands.append(pre)
@@ -177,18 +248,24 @@ class MainWindow(QMainWindow):
                 else:
                     color = 'orange'
             if command[0] in ('hrz', 'vrt', 'slp'):
-                x1, y1, x2, y2, r, ccw = command[1:]
+                x1, y1, x2, y2, r, ccw, angle, distance = command[1:]
                 draw.line((x1, y1, x2, y2), fill=color, width=3)
             if command[0] == 'arc':
-                x1, y1, x2, y2, r, ccw = command[1:]
+                x1, y1, x2, y2, r, ccw, angle, distance = command[1:]
                 if not draw_gcode_arc(self, draw, x1, y1, x2, y2, r, ccw):
                     return False
+            if command[0] == 'htc':
+                x1, y1, x2, y2, r, ccw, angle, distance = command[1:]
+                hatch_lines = get_hatch_lines(self.img, x2, y2, angle, distance)
+                for line in hatch_lines:
+                    xi1, yi1, xi2, yi2 = line
+                    draw.line((xi1, yi1, xi2, yi2), fill=color, width=3)
             pass
         # current position
         if self.current_x is not None and self.current_y is not None:
-            r = 3  # радиус текущей позиции
+            r = 3
             draw.ellipse((self.current_x - r, self.current_y - r, self.current_x + r, self.current_y + r), fill="red")
-        img.save(".field_img.png")
+        self.img.save(f".field_img.png")
         pixmap = QPixmap(".field_img.png")
         self.scene.addPixmap(pixmap)
         return True
@@ -214,10 +291,9 @@ class MainWindow(QMainWindow):
         self.consoleEdit.moveCursor(QTextCursor.End)
 
     def on_paint_view_clicked(self, x, y):
-        # processing
+        # processing & snapping
         goto_x = x
         goto_y = y
-        # snapping
         if self.mode == 'hrz':
             goto_y = self.current_y
             if self.btn_radio_snapping.isChecked():
@@ -230,25 +306,44 @@ class MainWindow(QMainWindow):
                 goto_y = nearest_y
         if self.mode in ('slp', 'arc') and self.btn_radio_snapping.isChecked():
             goto_x, goto_y = nearest_anchor(goto_x, goto_y, self.anchors)
-        self.Append(f"<<<< Движение на x={goto_x}, y={goto_y} >>>>\n")
+        self.Append(f"<<<< Конечная точка: x={goto_x}, y={goto_y} >>>>\n")
         # pre-paint and confirm
-        if not self.draw_img(pre=(self.mode, self.current_x, self.current_y, goto_x, goto_y, int(self.spinbox_paint_radius.text()), self.btn_radio_paint_ccw.isChecked())):
+        if not self.draw_img(pre=(self.mode, self.current_x, self.current_y, goto_x, goto_y, int(self.spinbox_paint_radius.text()), self.btn_radio_paint_ccw.isChecked(), int(self.spinbox_paint_hatch_angle.text()), int(self.spinbox_paint_hatch_distance.text()))):
             return
         if not confirm(self, f"Вы уверены, что хотите выполнить это действие?"):
             self.draw_img()
             return
         # sending
-        if not SendGcode(self.portsComboBox.currentText(), [get_gcode(self.mode, self.btn_radio_paint.isChecked(), goto_x, goto_y, self.btn_radio_paint_ccw.isChecked(), int(self.spinbox_paint_radius.text())),], int(self.baudRateLineEdit.text())):
-            alert(self, "Ошибка отправки! Проверьте подключение!")
+        if self.mode == 'htc':
             self.draw_img()
-            return
+            g_codes, goto_htc_x, goto_htc_y = get_gcodes_htc(self.img, self.mode, self.btn_radio_paint.isChecked(), goto_x, goto_y, int(self.spinbox_paint_hatch_angle.text()), int(self.spinbox_paint_hatch_distance.text()), self.current_x, self.current_y)
+            if not SendGcode(self.portsComboBox.currentText(), g_codes, int(self.baudRateLineEdit.text())):
+                alert(self, "Ошибка отправки! Проверьте подключение!")
+                self.draw_img()
+                return
+        else:
+            if not SendGcode(self.portsComboBox.currentText(), [get_gcode(self.mode, self.btn_radio_paint.isChecked(), goto_x, goto_y, self.btn_radio_paint_ccw.isChecked(), int(self.spinbox_paint_radius.text())),], int(self.baudRateLineEdit.text())):
+                alert(self, "Ошибка отправки! Проверьте подключение!")
+                self.draw_img()
+                return
         # draw if sent succesfully
-        self.g_codes.append(get_gcode(self.mode, self.btn_radio_paint.isChecked(), goto_x, goto_y, self.btn_radio_paint_ccw.isChecked(), int(self.spinbox_paint_radius.text())))
+        if self.mode == 'htc':
+            self.g_codes.extend(g_codes)
+        else:
+            self.g_codes.append(get_gcode(self.mode, self.btn_radio_paint.isChecked(), goto_x, goto_y, self.btn_radio_paint_ccw.isChecked(), int(self.spinbox_paint_radius.text())))
         if self.btn_radio_paint.isChecked():
-            self.draw_commands.append((self.mode, self.current_x, self.current_y, goto_x, goto_y, int(self.spinbox_paint_radius.text()), self.btn_radio_paint_ccw.isChecked()))
+            self.draw_commands.append((self.mode, self.current_x, self.current_y, goto_x, goto_y, int(self.spinbox_paint_radius.text()), self.btn_radio_paint_ccw.isChecked(), int(self.spinbox_paint_hatch_angle.text()), int(self.spinbox_paint_hatch_distance.text())))
             # add anchor
             self.anchors.add((self.current_x, self.current_y))
-            self.anchors.add((goto_x, goto_y))
+            if self.mode != 'htc':
+                self.anchors.add((goto_x, goto_y))
+        if self.mode == 'htc':
+            if self.btn_radio_paint.isChecked():
+                goto_x = goto_htc_x
+                goto_y = goto_htc_y
+            else:
+                goto_x = self.current_x
+                goto_y = self.current_y
         self.current_x = goto_x
         self.current_y = goto_y
         self.draw_img()
@@ -294,6 +389,10 @@ class MainWindow(QMainWindow):
     def clicked_btn_mode_slp(self):
         self.mode = 'slp'
         self.mode_paint_label.setText(f'Произвольное перемещение')
+
+    def clicked_btn_mode_htc(self):
+        self.mode = 'htc'
+        self.mode_paint_label.setText(f'Штриховка')
 
     def clicked_btn_mode_arc(self):
         self.mode = 'arc'

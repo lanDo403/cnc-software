@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_2">
      <attribute name="title">
@@ -471,14 +471,94 @@
      <widget class="QPushButton" name="btn_paint_add_anchor_point">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>310</y>
+        <x>400</x>
+        <y>350</y>
         <width>331</width>
         <height>23</height>
        </rect>
       </property>
       <property name="text">
        <string>Поставить якорную точку на текущей позиции</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_12">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>310</y>
+        <width>331</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Специальные настройки для штриховки:</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinbox_paint_hatch_angle">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>370</y>
+        <width>131</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="maximum">
+       <number>90</number>
+      </property>
+      <property name="singleStep">
+       <number>5</number>
+      </property>
+      <property name="value">
+       <number>45</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinbox_paint_hatch_distance">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>370</y>
+        <width>161</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>-500</number>
+      </property>
+      <property name="maximum">
+       <number>500</number>
+      </property>
+      <property name="singleStep">
+       <number>5</number>
+      </property>
+      <property name="value">
+       <number>10</number>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_13">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>340</y>
+        <width>161</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Угол штриховки:</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_17">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>340</y>
+        <width>161</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Расстояние между линиями:</string>
       </property>
      </widget>
     </widget>
