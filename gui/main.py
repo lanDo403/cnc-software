@@ -10,17 +10,19 @@ import copy
 import math
 #import serial.tools.list_ports as get_list
 
-
-from response import *
-# # dummy implementation of SendGcode and SendHex for testing GUI
-# def SendGcode(port: str, gcodeLines: list[str], baudrate: int, chunkSize: int=250, retries: int=3) -> bool:
-#     print(f"Sending G-codes: port={port}, baudrate={baudrate}; G-codes={gcodeLines}")
-#     return True
+SELECTED_MODE_BTN_STYLE = 'border: 3px solid black;'
 
 
-# def SendHex(port: str, hexString: str, baudrate: int) -> bool:
-#     print(f"Sending HEX packet: port={port}, baudrate={baudrate}; packet={hexString}")
-#     return True
+# from response import *
+# dummy implementation of SendGcode and SendHex for testing GUI
+def SendGcode(port: str, gcodeLines: list[str], baudrate: int, chunkSize: int=250, retries: int=3) -> bool:
+    print(f"Sending G-codes: port={port}, baudrate={baudrate}; G-codes={gcodeLines}")
+    return True
+
+
+def SendHex(port: str, hexString: str, baudrate: int) -> bool:
+    print(f"Sending HEX packet: port={port}, baudrate={baudrate}; packet={hexString}")
+    return True
 
 
 def nearest_anchor(x: int, y: int, anchors: set[tuple[int, int]]) -> tuple[int, int]:
@@ -201,7 +203,7 @@ class MainWindow(QMainWindow):
         self.scene = QGraphicsScene()
         self.paint_view.setScene(self.scene)
         self.paint_view.fitInView(self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
-        self.mode_paint_label.setText(f'Горизонтальное перемещение')
+        self.btn_paint_vertical.setStyleSheet(SELECTED_MODE_BTN_STYLE)
         self.file_gcodes: str = ''
 
         # set button icons
@@ -313,6 +315,9 @@ class MainWindow(QMainWindow):
                 goto_y = nearest_y
         if self.mode in ('slp', 'arc') and self.btn_radio_snapping.isChecked():
             goto_x, goto_y = nearest_anchor(goto_x, goto_y, self.anchors)
+        if self.mode == 'htc' and not self.btn_radio_paint.isChecked():
+            alert(self, "Штриховка без режима рисования не имеет смысла!")
+            return
         self.Append(f"<<<< Конечная точка: x={goto_x}, y={goto_y} >>>>\n")
         # pre-paint and confirm
         if not self.draw_img(pre=(self.mode, self.current_x, self.current_y, goto_x, goto_y, int(self.spinbox_paint_radius.text()), self.btn_radio_paint_ccw.isChecked(), int(self.spinbox_paint_hatch_angle.text()), int(self.spinbox_paint_hatch_distance.text()))):
@@ -387,23 +392,35 @@ class MainWindow(QMainWindow):
 
     def clicked_btn_mode_hrz(self):
         self.mode = 'hrz'
-        self.mode_paint_label.setText(f'Горизонтальное перемещение')
+        self.clear_all_btn_styles()
+        self.btn_paint_horizontal.setStyleSheet(SELECTED_MODE_BTN_STYLE)
 
     def clicked_btn_mode_vrt(self):
         self.mode = 'vrt'
-        self.mode_paint_label.setText(f'Вертикальное перемещение')
+        self.clear_all_btn_styles()
+        self.btn_paint_vertical.setStyleSheet(SELECTED_MODE_BTN_STYLE)
 
     def clicked_btn_mode_slp(self):
         self.mode = 'slp'
-        self.mode_paint_label.setText(f'Произвольное перемещение')
+        self.clear_all_btn_styles()
+        self.btn_paint_sloped.setStyleSheet(SELECTED_MODE_BTN_STYLE)
 
     def clicked_btn_mode_htc(self):
         self.mode = 'htc'
-        self.mode_paint_label.setText(f'Штриховка')
+        self.clear_all_btn_styles()
+        self.btn_paint_hatch.setStyleSheet(SELECTED_MODE_BTN_STYLE)
 
     def clicked_btn_mode_arc(self):
         self.mode = 'arc'
-        self.mode_paint_label.setText(f'Перемещение по дуге')
+        self.clear_all_btn_styles()
+        self.btn_paint_arc.setStyleSheet(SELECTED_MODE_BTN_STYLE)
+
+    def clear_all_btn_styles(self):
+        self.btn_paint_horizontal.setStyleSheet('')
+        self.btn_paint_vertical.setStyleSheet('')
+        self.btn_paint_sloped.setStyleSheet('')
+        self.btn_paint_hatch.setStyleSheet('')
+        self.btn_paint_arc.setStyleSheet('')
 
     def clicked_btn_paint_add_anchor_point(self):
         alert(self, f"Добавлена якорная точка на координатах x={self.current_x} y={self.current_y}!")
