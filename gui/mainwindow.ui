@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>723</height>
+    <width>753</width>
+    <height>905</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,12 +19,12 @@
      <rect>
       <x>20</x>
       <y>40</y>
-      <width>751</width>
-      <height>611</height>
+      <width>711</width>
+      <height>821</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_2">
      <attribute name="title">
@@ -84,8 +84,8 @@
        <rect>
         <x>20</x>
         <y>150</y>
-        <width>711</width>
-        <height>421</height>
+        <width>661</width>
+        <height>621</height>
        </rect>
       </property>
       <property name="readOnly">
@@ -139,7 +139,7 @@
        <rect>
         <x>420</x>
         <y>80</y>
-        <width>301</width>
+        <width>261</width>
         <height>24</height>
        </rect>
       </property>
@@ -152,7 +152,7 @@
        <rect>
         <x>420</x>
         <y>40</y>
-        <width>181</width>
+        <width>261</width>
         <height>24</height>
        </rect>
       </property>
@@ -165,40 +165,12 @@
      <attribute name="title">
       <string>Рисование</string>
      </attribute>
-     <widget class="QGraphicsView" name="paint_view">
-      <property name="geometry">
-       <rect>
-        <x>400</x>
-        <y>40</y>
-        <width>330</width>
-        <height>228</height>
-       </rect>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>330</width>
-        <height>228</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>330</width>
-        <height>228</height>
-       </size>
-      </property>
-      <property name="verticalScrollBarPolicy">
-       <enum>Qt::ScrollBarAlwaysOff</enum>
-      </property>
-      <property name="horizontalScrollBarPolicy">
-       <enum>Qt::ScrollBarAlwaysOff</enum>
-      </property>
-     </widget>
      <widget class="QLabel" name="label_6">
       <property name="geometry">
        <rect>
-        <x>400</x>
-        <y>10</y>
-        <width>331</width>
+        <x>20</x>
+        <y>200</y>
+        <width>661</width>
         <height>21</height>
        </rect>
       </property>
@@ -211,7 +183,7 @@
        <rect>
         <x>20</x>
         <y>10</y>
-        <width>331</width>
+        <width>291</width>
         <height>16</height>
        </rect>
       </property>
@@ -224,59 +196,61 @@
        <rect>
         <x>20</x>
         <y>40</y>
-        <width>331</width>
-        <height>23</height>
+        <width>51</width>
+        <height>51</height>
        </rect>
       </property>
+      <property name="toolTip">
+       <string extracomment="Рисование вертикальных линий"/>
+      </property>
+      <property name="statusTip">
+       <string extracomment="Рисование вертикальных линий"/>
+      </property>
+      <property name="whatsThis">
+       <string notr="true" comment="Рисование вертикальных линий" extracomment="Рисование вертикальных линий"/>
+      </property>
+      <property name="accessibleName">
+       <string extracomment="Рисование вертикальных линий"/>
+      </property>
+      <property name="accessibleDescription">
+       <string extracomment="Рисование вертикальных линий"/>
+      </property>
       <property name="text">
-       <string>[ | ] Вертикальное перемещение</string>
+       <string/>
       </property>
      </widget>
      <widget class="QPushButton" name="btn_paint_horizontal">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>70</y>
-        <width>331</width>
-        <height>23</height>
+        <x>90</x>
+        <y>40</y>
+        <width>51</width>
+        <height>51</height>
        </rect>
       </property>
       <property name="text">
-       <string>[ - ] Горизонтально перемещение</string>
+       <string/>
       </property>
      </widget>
      <widget class="QPushButton" name="btn_paint_sloped">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>100</y>
-        <width>331</width>
-        <height>23</height>
+        <x>160</x>
+        <y>40</y>
+        <width>51</width>
+        <height>51</height>
        </rect>
       </property>
       <property name="text">
-       <string>[ \ ] Произвольное перемещение</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="mode_paint_label">
-      <property name="geometry">
-       <rect>
-        <x>400</x>
-        <y>280</y>
-        <width>331</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>current_mode</string>
+       <string/>
       </property>
      </widget>
      <widget class="QLabel" name="label_10">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>250</y>
-        <width>231</width>
+        <x>390</x>
+        <y>40</y>
+        <width>191</width>
         <height>21</height>
        </rect>
       </property>
@@ -287,8 +261,8 @@
      <widget class="QSpinBox" name="spinbox_paint_radius">
       <property name="geometry">
        <rect>
-        <x>260</x>
-        <y>250</y>
+        <x>590</x>
+        <y>40</y>
         <width>91</width>
         <height>21</height>
        </rect>
@@ -306,9 +280,9 @@
      <widget class="QRadioButton" name="btn_radio_paint_ccw">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>280</y>
-        <width>331</width>
+        <x>390</x>
+        <y>70</y>
+        <width>291</width>
         <height>21</height>
        </rect>
       </property>
@@ -322,22 +296,22 @@
      <widget class="QPushButton" name="btn_paint_hatch">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>130</y>
-        <width>331</width>
-        <height>23</height>
+        <x>230</x>
+        <y>40</y>
+        <width>51</width>
+        <height>51</height>
        </rect>
       </property>
       <property name="text">
-       <string>[ /// ] Заштриховать область</string>
+       <string/>
       </property>
      </widget>
      <widget class="QRadioButton" name="btn_radio_paint">
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>190</y>
-        <width>121</width>
+        <y>100</y>
+        <width>151</width>
         <height>21</height>
        </rect>
       </property>
@@ -351,8 +325,8 @@
      <widget class="QLabel" name="label_11">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>220</y>
+        <x>390</x>
+        <y>10</y>
         <width>331</width>
         <height>16</height>
        </rect>
@@ -364,21 +338,21 @@
      <widget class="QPushButton" name="btn_paint_arc">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>160</y>
-        <width>331</width>
-        <height>23</height>
+        <x>300</x>
+        <y>40</y>
+        <width>51</width>
+        <height>51</height>
        </rect>
       </property>
       <property name="text">
-       <string>[ ( ] Перемещение по дуге</string>
+       <string/>
       </property>
      </widget>
      <widget class="QPushButton" name="btn_select_file">
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>520</y>
+        <y>730</y>
         <width>111</width>
         <height>23</height>
        </rect>
@@ -391,7 +365,7 @@
       <property name="geometry">
        <rect>
         <x>150</x>
-        <y>520</y>
+        <y>730</y>
         <width>581</width>
         <height>21</height>
        </rect>
@@ -404,8 +378,8 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>490</y>
-        <width>711</width>
+        <y>700</y>
+        <width>661</width>
         <height>16</height>
        </rect>
       </property>
@@ -417,7 +391,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>550</y>
+        <y>760</y>
         <width>111</width>
         <height>21</height>
        </rect>
@@ -429,9 +403,9 @@
      <widget class="QPushButton" name="btn_paint_calibrate">
       <property name="geometry">
        <rect>
-        <x>400</x>
-        <y>310</y>
-        <width>161</width>
+        <x>20</x>
+        <y>130</y>
+        <width>151</width>
         <height>23</height>
        </rect>
       </property>
@@ -442,9 +416,9 @@
      <widget class="QPushButton" name="btn_paint_clear_img">
       <property name="geometry">
        <rect>
-        <x>570</x>
-        <y>310</y>
-        <width>161</width>
+        <x>200</x>
+        <y>130</y>
+        <width>151</width>
         <height>23</height>
        </rect>
       </property>
@@ -455,9 +429,9 @@
      <widget class="QRadioButton" name="btn_radio_snapping">
       <property name="geometry">
        <rect>
-        <x>160</x>
-        <y>190</y>
-        <width>191</width>
+        <x>200</x>
+        <y>100</y>
+        <width>151</width>
         <height>21</height>
        </rect>
       </property>
@@ -471,8 +445,8 @@
      <widget class="QPushButton" name="btn_paint_add_anchor_point">
       <property name="geometry">
        <rect>
-        <x>400</x>
-        <y>350</y>
+        <x>20</x>
+        <y>160</y>
         <width>331</width>
         <height>23</height>
        </rect>
@@ -484,9 +458,9 @@
      <widget class="QLabel" name="label_12">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>310</y>
-        <width>331</width>
+        <x>390</x>
+        <y>100</y>
+        <width>291</width>
         <height>16</height>
        </rect>
       </property>
@@ -497,17 +471,20 @@
      <widget class="QSpinBox" name="spinbox_paint_hatch_angle">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>370</y>
-        <width>131</width>
+        <x>390</x>
+        <y>160</y>
+        <width>111</width>
         <height>21</height>
        </rect>
+      </property>
+      <property name="minimum">
+       <number>-90</number>
       </property>
       <property name="maximum">
        <number>90</number>
       </property>
       <property name="singleStep">
-       <number>5</number>
+       <number>15</number>
       </property>
       <property name="value">
        <number>45</number>
@@ -516,8 +493,8 @@
      <widget class="QSpinBox" name="spinbox_paint_hatch_distance">
       <property name="geometry">
        <rect>
-        <x>190</x>
-        <y>370</y>
+        <x>520</x>
+        <y>160</y>
         <width>161</width>
         <height>21</height>
        </rect>
@@ -538,9 +515,9 @@
      <widget class="QLabel" name="label_13">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>340</y>
-        <width>161</width>
+        <x>390</x>
+        <y>130</y>
+        <width>111</width>
         <height>16</height>
        </rect>
       </property>
@@ -551,14 +528,42 @@
      <widget class="QLabel" name="label_17">
       <property name="geometry">
        <rect>
-        <x>190</x>
-        <y>340</y>
+        <x>520</x>
+        <y>130</y>
         <width>161</width>
         <height>20</height>
        </rect>
       </property>
       <property name="text">
        <string>Расстояние между линиями:</string>
+      </property>
+     </widget>
+     <widget class="QGraphicsView" name="paint_view">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>230</y>
+        <width>660</width>
+        <height>456</height>
+       </rect>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>660</width>
+        <height>456</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>660</width>
+        <height>456</height>
+       </size>
+      </property>
+      <property name="verticalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
       </property>
      </widget>
     </widget>
@@ -584,7 +589,7 @@
        <rect>
         <x>20</x>
         <y>40</y>
-        <width>561</width>
+        <width>571</width>
         <height>20</height>
        </rect>
       </property>
@@ -592,7 +597,7 @@
      <widget class="QPushButton" name="btn_pro_gcode_send">
       <property name="geometry">
        <rect>
-        <x>600</x>
+        <x>610</x>
         <y>40</y>
         <width>75</width>
         <height>23</height>
@@ -620,7 +625,7 @@
        <rect>
         <x>20</x>
         <y>110</y>
-        <width>561</width>
+        <width>571</width>
         <height>20</height>
        </rect>
       </property>
@@ -628,7 +633,7 @@
      <widget class="QPushButton" name="btn_pro_hex_send">
       <property name="geometry">
        <rect>
-        <x>600</x>
+        <x>610</x>
         <y>110</y>
         <width>75</width>
         <height>23</height>
