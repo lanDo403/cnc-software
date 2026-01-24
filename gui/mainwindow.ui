@@ -445,9 +445,9 @@
      <widget class="QPushButton" name="btn_paint_add_anchor_point">
       <property name="geometry">
        <rect>
-        <x>60</x>
+        <x>20</x>
         <y>160</y>
-        <width>291</width>
+        <width>331</width>
         <height>23</height>
        </rect>
       </property>

@@ -11,6 +11,7 @@ import math
 #import serial.tools.list_ports as get_list
 
 SELECTED_MODE_BTN_STYLE = 'border: 3px solid black;'
+SCALE_FACTOR = 2
 
 
 # from response import *
@@ -188,7 +189,7 @@ class GraphicsViewClickFilter(QObject):
     def eventFilter(self, obj, event):
         if event.type() == QEvent.MouseButtonPress:
             pos = event.pos()
-            self.callback(pos.x(), pos.y())
+            self.callback(int(pos.x() / SCALE_FACTOR), int(pos.y() / SCALE_FACTOR))
         return False
 
 
@@ -201,6 +202,8 @@ class MainWindow(QMainWindow):
         self.filter = GraphicsViewClickFilter(self.on_paint_view_clicked)
         self.paint_view.viewport().installEventFilter(self.filter)
         self.scene = QGraphicsScene()
+        self.paint_view.resetTransform()
+        self.paint_view.scale(2.0, 2.0)
         self.paint_view.setScene(self.scene)
         self.paint_view.fitInView(self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
         self.btn_paint_vertical.setStyleSheet(SELECTED_MODE_BTN_STYLE)
