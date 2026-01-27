@@ -2,6 +2,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdbool.h>
+#include "gcode.h"
 
 #define CORDIC_ITERATIONS 16
 #define CORDIC_GAIN 0.6072529350088812561694  // K = ∏(cos(atan(2^-i)))
@@ -25,17 +26,6 @@ const float cordic_atan_table[] = {
     6.103515617420877e-05, // atan(6.103515625e-05)
     3.0517578115526096e-05 // atan(3.0517578125e-05)
 };
-
-typedef struct {
-    float prev_x;   // Предыдущая позиция X
-    float prev_y;   // Предыдущая позиция Y
-    float x;        // Текущая позиция X
-    float y;        // Текущая позиция Y
-    bool absolute;  // Режим координат (true - абсолютные, false - относительные)
-    float feed_rate;// Скорость подачи
-    bool rapid;     // Режим быстрого перемещения
-    float step_size;// Размер шага мотора (мм)
-} CNC_Start;
 
 void cordic_sin_cos(float angle_rad, float *sin_val, float *cos_val) {
     float x = CORDIC_GAIN;
@@ -329,32 +319,5 @@ void parse_gcode(CNC_Start* start, const char* gcode) {
     } else {
         printf("Неизвестная команда :( : %s\n", gcode);
     }
-}
-
-int main() {
-    CNC_Start cnc;
-    cnc_init(&cnc);
-
-    printf("\n=== Пример последовательности G-кодов ===\n\n");
-
-    // Устанавливаем точный размер шага (10 микрон)
-    parse_gcode(&cnc, "SET_STEP 0.00001");
-
-    parse_gcode(&cnc, "G90");
-    parse_gcode(&cnc, "G00 X50 Y10");
-
-    parse_gcode(&cnc, "F300");
-    parse_gcode(&cnc, "G01 X123 Y15 F1000");
-
-    // Тест дуги с вычислением шагов через CORDIC
-    parse_gcode(&cnc, "G02 X30 Y20 I7 J2");
-
-    parse_gcode(&cnc, "G91");
-    parse_gcode(&cnc, "G01 X7 Y7");
-    parse_gcode(&cnc, "G03 X15 Y15 I-5 J5");
-
-    printf("\n=== Позиция после выполнения: (%.2f, %.2f) ===\n", cnc.x, cnc.y);
-
-    return 0;
 }
 
