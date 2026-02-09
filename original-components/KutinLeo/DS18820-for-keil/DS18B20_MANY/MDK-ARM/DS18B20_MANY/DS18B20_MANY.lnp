@@ -1,0 +1,27 @@
+--cpu Cortex-M3
+"ds18b20_many\startup_stm32f103xb.o"
+"ds18b20_many\main.o"
+"ds18b20_many\gpio.o"
+"ds18b20_many\usart.o"
+"ds18b20_many\stm32f1xx_it.o"
+"ds18b20_many\stm32f1xx_hal_msp.o"
+"ds18b20_many\onewire.o"
+"ds18b20_many\stm32f1xx_hal_gpio_ex.o"
+"ds18b20_many\stm32f1xx_hal_tim.o"
+"ds18b20_many\stm32f1xx_hal_tim_ex.o"
+"ds18b20_many\stm32f1xx_hal_uart.o"
+"ds18b20_many\stm32f1xx_hal.o"
+"ds18b20_many\stm32f1xx_hal_rcc.o"
+"ds18b20_many\stm32f1xx_hal_rcc_ex.o"
+"ds18b20_many\stm32f1xx_hal_gpio.o"
+"ds18b20_many\stm32f1xx_hal_dma.o"
+"ds18b20_many\stm32f1xx_hal_cortex.o"
+"ds18b20_many\stm32f1xx_hal_pwr.o"
+"ds18b20_many\stm32f1xx_hal_flash.o"
+"ds18b20_many\stm32f1xx_hal_flash_ex.o"
+"ds18b20_many\stm32f1xx_hal_exti.o"
+"ds18b20_many\system_stm32f1xx.o"
+--strict --scatter "DS18B20_MANY\DS18B20_MANY.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "DS18B20_MANY.map" -o DS18B20_MANY\DS18B20_MANY.axf
